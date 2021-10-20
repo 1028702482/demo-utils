@@ -1,0 +1,85 @@
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>xml报文转JAVA实体类</title>
+    <script src="js/jquery-1.8.2.js"></script>
+</head>
+  <body>
+    <div style="margin: 0px 30px;">
+   &nbsp;&nbsp;包名： <input type="text" id="packageName"><br>
+   * 类名： <input type="text" id="className" value=XmlBean><br>
+    *&nbsp;xml： <textarea id="xml" style="display: block; margin: 0px 448px 0px 0px; width: 1060px; height: 210px;"></textarea>
+      <button id="submit-txt">转换-JAVA</button>&nbsp;&nbsp;<button id="submit">生成JAVA类文件</button></br>
+      &nbsp;JAVA： <textarea id="java" style="display: block; margin: 0px 448px 0px 0px; width: 1060px; height: 300px;"></textarea>
+    </div>
+  </body>
+  <script>
+	  $("#submit-txt").click(function () {
+	      let dataInfo = {};
+	      dataInfo.packageName= $("#packageName").val();
+	      dataInfo.className = $("#className").val();
+	      dataInfo.xml= $("#xml").val();
+	      fetch('/utils/xmlToJavaFile', {
+	        method: 'POST',
+	        mode: 'cors',
+	        headers: {
+	          'Content-Type': 'application/json'
+	        },
+	        body: JSON.stringify(dataInfo),
+	      })
+	  //    .then(res => res.blob())
+	      .then(function(response) {
+	        if(response.ok) {
+	        	response.text().then(function(data){
+	        		$("#java").val(data);
+	        		return ;
+	              });
+	        }
+	        response.text().then(function(data){
+	          console.log(data);
+	          window.alert(data);
+	          throw new Error(data);
+	        });
+	      });
+	  })
+    $("#submit").click(function () {
+    	let dataInfo = {};
+        dataInfo.packageName = $("#packageName").val();
+        dataInfo.className = $("#className").val();
+        dataInfo.xml = $("#xml").val();
+        dataInfo.download = '1';
+        
+	    fetch('/utils/xmlToJavaFile', {
+	      method: 'POST',
+	      mode: 'cors',
+	      headers: {
+	        'Content-Type': 'application/json'
+	      },
+	      body: JSON.stringify(dataInfo),
+	    })
+	//    .then(res => res.blob())
+		.then(function(response) {
+		  if(response.ok) {
+		    return response.blob();
+		  }
+		  response.text().then(function(data){
+		    console.log(data);
+		    window.alert(data);
+		    throw new Error(data);
+		  });
+		})
+	    .then(data => {
+	      let blobUrl = window.URL.createObjectURL(data);
+	      download(blobUrl, dataInfo.className);
+	    });
+    })
+    function download(blobUrl, fileName) {
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.download = fileName+'.java';
+      a.href = blobUrl;
+      a.click();
+      document.body.removeChild(a);
+    }
+  </script>
+</html>
